@@ -8,6 +8,7 @@ import NumberContainer from '../components/NumberContainer';
 import CustomText from '../components/BodyText';
 import MainButton from '../components/MainButton';
 
+
 const StartGame = ({ onStartGame }) => {
   const [enteredVal, setEnteredVal] = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -33,7 +34,7 @@ const StartGame = ({ onStartGame }) => {
       Dimensions.removeEventListener('change', updateLayout)
     });
   });
-  
+
   const confirmInputHandler = () => {
     const chosenNumber = parseInt(enteredVal);
     if (isNaN(chosenNumber) || chosenNumber < 1 || chosenNumber > 99) {
@@ -58,7 +59,7 @@ const StartGame = ({ onStartGame }) => {
   }
 
   return (<ScrollView>
-    <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={30}>
+    <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={20} >
       <TouchableWithoutFeedback onPress={() => {
         Keyboard.dismiss();
       }}>

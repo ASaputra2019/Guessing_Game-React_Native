@@ -1,17 +1,21 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, TouchableNativeFeedback, Platform } from 'react-native';
 import Color from '../constants/color';
 
 
 const MainButton = props => {
-  return <TouchableOpacity 
+  let ButtonComponent = TouchableOpacity;
+  if (Platform.OS === 'android' && Platform.Version >= 21){
+    ButtonComponent = TouchableNativeFeedback;
+  }
+  return <ButtonComponent 
     onPress={props.onPress}
     activeOpacity={0.6}
   >
     <View style={styles.button}>
       <Text style={styles.buttonText}>{props.children}</Text>
     </View>
-  </TouchableOpacity>
+  </ButtonComponent>
 };
 
 const styles = StyleSheet.create({
