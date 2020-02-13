@@ -1,13 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, Button, Alert } from 'react-native';
-import NumberContainter from '../components/NumberContainer';
-import Card from '../components/Card';
+import { StyleSheet, View, Text, Alert, ScrollView, FlatList, Dimensions } from 'react-native';
+import BodyText from '../components/BodyText';
+import GameControl from './GameControl';
 
+
+const renderListItem = (listLength, itemData) => {
+  return (<View style={styles.listItems}>
+    <BodyText>{listLength - itemData.index}.  </BodyText>
+    <BodyText>{itemData.item}</BodyText>
+  </View>);
+};
 
 const generateRandomBetween = (min, max, exclude) => {
   min = Math.ceil(min);
   max = Math.floor(max);
-  let guess = Math.floor(Math.random() * (max - min)) + min;
+  let guess = Math.floor(Math.random() * (max - min - 1)) + min + 1;
   if (guess === exclude) {
     return generateRandomBetween(min, max, exclude);
   } else {
@@ -16,40 +23,61 @@ const generateRandomBetween = (min, max, exclude) => {
 };
 
 const GameScreen = (props) => {
-  const [currentGuess, setCurrentGuess] = useState(generateRandomBetween(1, 100, props.userChoice));
-  const [rounds, setRounds] = useState(0);
+  const intitalGuess = generateRandomBetween(1, 100, props.userChoice);
+  const [currentGuess, setCurrentGuess] = useState(intitalGuess);
+  const [pastGuesses, setPastGuesses] = useState([String(intitalGuess)]);
+  const [deviceWidth, setDeviceWidth] = useState(Dimensions.get('window').width);
+  const [deviceHeight, setDeviceHeight] = useState(Dimensions.get('window').height);
   const currLow = useRef(0);
   const currHigh = useRef(100);
   const { userChoice, onGameOver } = props;
   useEffect(() => {
     if (currentGuess === userChoice) {
-      onGameOver(rounds);      
+      onGameOver(pastGuesses.length);
     }
   }, [currentGuess, onGameOver, userChoice])
 
   const nextGuessHandler = dir => {
-    if(dir === "lower" && currentGuess < userChoice || dir === "higher" && currentGuess > userChoice) {
+    if (dir === "lower" && currentGuess < userChoice || dir === "higher" && currentGuess > userChoice) {
       Alert.alert('Don\'t lie!', 'You provided wrong hint', [{ text: "Sorry", style: "cancel" }]);
       return;
     }
-    if(dir === "lower") {
+    if (dir === "lower") {
       currHigh.current = currentGuess;
     } else {
       currLow.current = currentGuess;
     }
-
     const nextNumber = generateRandomBetween(currLow.current, currHigh.current, currentGuess);
     setCurrentGuess(nextNumber);
-    setRounds(currentRounds =>  currentRounds + 1);
-  }
+    setPastGuesses(currPastGuesses => [String(nextNumber), ...currPastGuesses]);
+  };
+
+  useEffect(() => {
+    const changeLayout = () => {
+      setDeviceWidth(Dimensions.get('window').width);
+      setDeviceHeight(Dimensions.get('window').height);
+
+    };
+    Dimensions.addEventListener('change', changeLayout);
+    return () => { Dimensions.addEventListener('change', changeLayout) };
+  });
 
   return (<View style={styles.screen}>
     <Text>The opponent guess</Text>
-    <NumberContainter>{currentGuess}</NumberContainter>
-    <Card style={styles.buttonContainer}>
-      <Button title="Lower" onPress={nextGuessHandler.bind(this, "lower")} />
-      <Button title="Higher" onPress={nextGuessHandler.bind(this, "higher")} />
-    </Card>
+    <GameControl 
+      deviceWidth={deviceWidth} 
+      deviceHeight={deviceHeight} 
+      nextGuessHandler={nextGuessHandler} 
+      currentGuess={currentGuess} 
+    />
+    <View style={styles.scrollViewContainer}>
+      <FlatList
+        keyExtractor={item => item}
+        data={pastGuesses}
+        renderItem={renderListItem.bind(this, pastGuesses.length)}
+        contentContainerStyle={styles.flatList}
+      />
+    </View>
   </View>);
 };
 
@@ -59,12 +87,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 20,
-    width: 300,
-    maxWidth: "80%"
+  listItems: {
+    borderColor: "darkgray",
+    borderWidth: 1,
+    flexDirection: "row",
+    padding: 15,
+    marginTop: 10,
+    backgroundColor: "white",
+    justifyContent: "space-between",
+    width: "100%"
+  },
+  scrollViewContainer: {
+    width: "60%",
+    flex: 1,
+  },
+  flatList: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
   }
 });
 
