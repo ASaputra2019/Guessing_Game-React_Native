@@ -63,7 +63,7 @@ const GameScreen = (props) => {
   });
 
   return (<View style={styles.screen}>
-    <Text>The opponent guess</Text>
+    <Text>The computer guesses</Text>
     <GameControl 
       deviceWidth={deviceWidth} 
       deviceHeight={deviceHeight} 
